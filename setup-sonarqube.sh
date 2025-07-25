@@ -53,4 +53,26 @@ else
     fi
 fi
 
+# Create authentication token for CI/CD
+echo "🔑 Creating authentication token..."
+token_response=$(curl -u "${NEW_USER}:${NEW_PASS}" \
+    -X POST \
+    "${SONAR_URL}/api/user_tokens/generate" \
+    -d "name=ci-cd-token" \
+    -s)
+
+if echo "$token_response" | grep -q '"token"'; then
+    token=$(echo "$token_response" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+    echo "✅ Authentication token created successfully"
+    echo "🔐 Token: $token"
+    echo ""
+    echo "📝 To use this token in CI/CD:"
+    echo "   Set SONAR_TOKEN environment variable to: $token"
+    echo "   Or use sonar.token property instead of sonar.login/sonar.password"
+else
+    echo "⚠️  Token creation failed or token already exists"
+    echo "📝 You can manually create a token in SonarQube web interface:"
+    echo "   Go to: Administration > Security > Users > admin > Tokens"
+fi
+
 echo "🎉 SonarQube configuration completed!"

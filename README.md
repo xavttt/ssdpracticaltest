@@ -79,9 +79,19 @@ This project includes SonarQube integration for continuous code quality and secu
 
 4. **Run code analysis:**
    ```bash
+   # Method 1: Using token authentication (recommended)
+   export SONAR_TOKEN=your-token-here  # Get token from setup script output
+   ./run-sonar-analysis.sh
+   
+   # Method 2: Using deprecated username/password
    npm install -g sonarqube-scanner
    sonar-scanner
    ```
+
+### Important Notes:
+- **Token Authentication**: SonarQube now requires token-based authentication instead of username/password
+- **Getting a Token**: Run `./setup-local-sonarqube.sh` and look for the generated token in the output
+- **Environment Variable**: Set `SONAR_TOKEN` environment variable for seamless authentication
 
 ### CI/CD Integration:
 SonarQube analysis runs automatically in GitHub Actions CI/CD pipeline with:
