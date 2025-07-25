@@ -1,0 +1,183 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run dependency security audit
+      run: npm audit --audit-level=moderate
+      
+    - name: Build Docker image
+      run: docker build -t secure-web-app .
+      
+    - name: Start application with Docker Compose
+      run: |
+        docker-compose up -d
+        sleep 10  # Wait for application to start
+        
+    - name: Wait for application to be ready
+      run: |
+        timeout 30 bash -c 'until curl -f http://127.0.0.1; do sleep 2; done'
+        
+    - name: Run integration tests
+      run: |
+        # Test home page accessibility
+        echo "Testing home page..."
+        curl -f http://127.0.0.1 > /dev/null
+        
+        # Test valid search input
+        echo "Testing valid search input..."
+        curl -X POST -d "searchTerm=hello world" -H "Content-Type: application/x-www-form-urlencoded" -L http://127.0.0.1/search
+        
+        # Test XSS protection
+        echo "Testing XSS protection..."
+        response=$(curl -X POST -d "searchTerm=<script>alert('xss')</script>" -H "Content-Type: application/x-www-form-urlencoded" -w "%{http_code}" -o /dev/null -s http://127.0.0.1/search)
+        if [ "$response" != "302" ]; then
+          echo "XSS protection test failed - expected redirect (302)"
+          exit 1
+        fi
+        
+        # Test SQL injection protection
+        echo "Testing SQL injection protection..."
+        response=$(curl -X POST -d "searchTerm='; DROP TABLE users; --" -H "Content-Type: application/x-www-form-urlencoded" -w "%{http_code}" -o /dev/null -s http://127.0.0.1/search)
+        if [ "$response" != "302" ]; then
+          echo "SQL injection protection test failed - expected redirect (302)"
+          exit 1
+        fi
+        
+        # Test rate limiting (optional - may need adjustment based on your limits)
+        echo "Testing application responsiveness..."
+        for i in {1..5}; do
+          curl -f http://127.0.0.1 > /dev/null
+          sleep 1
+        done
+        
+    - name: Test security headers
+      run: |
+        echo "Testing security headers..."
+        # Test for security headers
+        headers=$(curl -I -s http://127.0.0.1)
+        
+        if echo "$headers" | grep -i "x-content-type-options"; then
+          echo "✓ X-Content-Type-Options header present"
+        else
+          echo "✗ X-Content-Type-Options header missing"
+          exit 1
+        fi
+        
+        if echo "$headers" | grep -i "x-frame-options"; then
+          echo "✓ X-Frame-Options header present"
+        else
+          echo "✗ X-Frame-Options header missing"
+          exit 1
+        fi
+        
+    - name: UI Testing with Playwright
+      run: |
+        # Install Playwright
+        npm install -D @playwright/test
+        npx playwright install --with-deps chromium
+        
+        # Create a simple UI test
+        cat > ui-test.js << 'EOF'
+        const { test, expect } = require('@playwright/test');
+        
+        test('Home page loads and form is present', async ({ page }) => {
+          await page.goto('http://127.0.0.1:3000');
+          
+          // Check if page title contains expected text
+          await expect(page).toHaveTitle(/Secure Search/);
+          
+          // Check if search form is present
+          const searchInput = page.locator('input[name="searchTerm"]');
+          await expect(searchInput).toBeVisible();
+          
+          // Check if submit button is present
+          const submitButton = page.locator('button[type="submit"]');
+          await expect(submitButton).toBeVisible();
+        });
+        
+        test('XSS protection works', async ({ page }) => {
+          await page.goto('http://127.0.0.1:3000');
+          
+          // Try to submit XSS payload
+          await page.fill('input[name="searchTerm"]', '<script>alert("xss")</script>');
+          await page.click('button[type="submit"]');
+          
+          // Should be redirected back to home page with error
+          await expect(page).toHaveURL(/\?error=/);
+        });
+        
+        test('Valid search works', async ({ page }) => {
+          await page.goto('http://127.0.0.1:3000');
+          
+          // Submit valid search
+          await page.fill('input[name="searchTerm"]', 'hello world');
+          await page.click('button[type="submit"]');
+          
+          // Should be redirected to results page
+          await expect(page).toHaveURL(/\/results\?q=/);
+          await expect(page.locator('text=hello world')).toBeVisible();
+        });
+        EOF
+        
+        # Run the UI tests
+        npx playwright test ui-test.js
+        
+    - name: Dependency vulnerability scan
+      run: |
+        # Install and run npm audit
+        echo "Running dependency vulnerability scan..."
+        npm audit --json > audit-results.json || true
+        
+        # Check for high/critical vulnerabilities
+        high_vuln=$(cat audit-results.json | jq '.metadata.vulnerabilities.high // 0')
+        critical_vuln=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
+        
+        echo "High severity vulnerabilities: $high_vuln"
+        echo "Critical severity vulnerabilities: $critical_vuln"
+        
+        if [ "$critical_vuln" -gt 0 ]; then
+          echo "❌ Critical vulnerabilities found!"
+          exit 1
+        fi
+        
+        if [ "$high_vuln" -gt 5 ]; then
+          echo "⚠️ Too many high severity vulnerabilities found!"
+          exit 1
+        fi
+        
+    - name: Clean up
+      if: always()
+      run: |
+        docker-compose down
+        docker system prune -f
+        
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          audit-results.json
+          test-results/
+        retention-days: 30

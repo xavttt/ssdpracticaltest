@@ -100,3 +100,7 @@ Thumbs.db
 # Debug files
 debug-*.js
 test-*.js
+
+# Git repositories and server data
+repos/
+repository/
