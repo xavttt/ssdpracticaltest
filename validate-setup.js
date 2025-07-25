@@ -1,6 +1,5 @@
 // Simple validation script to test our security implementation
 const fs = require('fs');
-const path = require('path');
 
 console.log('🔍 Validating Secure Web Application Setup...\n');
 
@@ -18,10 +17,14 @@ const requiredFiles = [
 let allFilesExist = true;
 
 requiredFiles.forEach(file => {
-    if (fs.existsSync(file)) {
+    // Validate file name to prevent path traversal
+    if (file && typeof file === 'string' && !file.includes('..') && fs.existsSync(file)) {
         console.log(`✅ ${file} - Found`);
-    } else {
+    } else if (file && typeof file === 'string' && !file.includes('..')) {
         console.log(`❌ ${file} - Missing`);
+        allFilesExist = false;
+    } else {
+        console.log(`❌ Invalid file name: ${file}`);
         allFilesExist = false;
     }
 });
@@ -39,7 +42,7 @@ try {
     ];
     
     securityDeps.forEach(dep => {
-        if (packageJson.dependencies && packageJson.dependencies[dep]) {
+        if (packageJson.dependencies && Object.prototype.hasOwnProperty.call(packageJson.dependencies, dep)) {
             console.log(`✅ Security dependency: ${dep}`);
         } else {
             console.log(`❌ Missing security dependency: ${dep}`);
@@ -49,11 +52,11 @@ try {
     
     // Check test scripts
     if (packageJson.scripts && packageJson.scripts.test) {
-        console.log(`✅ Test script configured`);
+        console.log('✅ Test script configured');
     }
     
     if (packageJson.scripts && packageJson.scripts['security-scan']) {
-        console.log(`✅ Security scan script configured`);
+        console.log('✅ Security scan script configured');
     }
     
 } catch (error) {
@@ -67,15 +70,15 @@ try {
     const dockerCompose = fs.readFileSync('docker-compose.yml', 'utf8');
     
     if (dockerCompose.includes('sonarqube:')) {
-        console.log(`✅ SonarQube service configured`);
+        console.log('✅ SonarQube service configured');
     }
     
     if (dockerCompose.includes('web:')) {
-        console.log(`✅ Web application service configured`);
+        console.log('✅ Web application service configured');
     }
     
     if (dockerCompose.includes('postgres:')) {
-        console.log(`✅ PostgreSQL database configured`);
+        console.log('✅ PostgreSQL database configured');
     }
     
 } catch (error) {
