@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Search App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .search-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"] {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        button {
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .security-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .security-info h3 {
+            margin-top: 0;
+        }
+        .security-info ul {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Secure Search Application</h1>
+        
+        <div id="errorContainer"></div>
+        
+        <form class="search-form" method="POST" action="/search">
+            <label for="searchTerm">Enter your search term:</label>
+            <input 
+                type="text" 
+                id="searchTerm" 
+                name="searchTerm" 
+                placeholder="Type your search query here..." 
+                required
+                maxlength="100"
+                autocomplete="off"
+            >
+            <button type="submit">🔍 Search</button>
+        </form>
+
+        <div class="security-info">
+            <h3>🛡️ Security Features</h3>
+            <p>This application implements OWASP Top 10 Proactive Control C5: Validate All Inputs</p>
+            <ul>
+                <li><strong>XSS Protection:</strong> Prevents script injection attacks</li>
+                <li><strong>SQL Injection Protection:</strong> Blocks malicious database queries</li>
+                <li><strong>Input Sanitization:</strong> Validates and filters user input</li>
+                <li><strong>Content Security Policy:</strong> Prevents unauthorized script execution</li>
+                <li><strong>Rate Limiting:</strong> Prevents abuse and DoS attacks</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Display error message if present in URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+        
+        if (error) {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.innerHTML = `
+                <div class="error">
+                    <strong>⚠️ Security Alert:</strong> ${error}. Please try again with a different search term.
+                </div>
+            `;
+            
+            // Clear the input field
+            document.getElementById('searchTerm').value = '';
+            
+            // Remove error from URL without page reload
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({path: newUrl}, '', newUrl);
+        }
+
+        // Client-side basic validation (defense in depth)
+        document.querySelector('.search-form').addEventListener('submit', function(e) {
+            const searchTerm = document.getElementById('searchTerm').value.trim();
+            
+            if (!searchTerm) {
+                e.preventDefault();
+                alert('Please enter a search term.');
+                return;
+            }
+            
+            if (searchTerm.length > 100) {
+                e.preventDefault();
+                alert('Search term is too long. Please enter a shorter term.');
+                return;
+            }
+        });
+    </script>
+</body>
+</html>

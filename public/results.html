@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - Secure Search App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .result-info {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .search-term {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4CAF50;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+            margin: 20px 0;
+        }
+        .back-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+        .validation-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+            margin-top: 20px;
+        }
+        .security-notice {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Search Results</h1>
+        
+        <div class="result-info">
+            <strong>✅ Input Validation Successful!</strong> Your search term has been validated and is safe to display.
+        </div>
+
+        <div class="search-term">
+            Search Term: <span id="searchTerm"></span>
+        </div>
+
+        <div class="validation-info">
+            <h3>🛡️ Security Validation Passed</h3>
+            <p>Your input has been successfully validated against:</p>
+            <ul>
+                <li>Cross-Site Scripting (XSS) attacks</li>
+                <li>SQL Injection attempts</li>
+                <li>Malicious script patterns</li>
+                <li>Invalid character sequences</li>
+                <li>Input length restrictions</li>
+            </ul>
+        </div>
+
+        <div class="security-notice">
+            <strong>🔒 Security Note:</strong> This application demonstrates OWASP secure coding practices. 
+            In a real application, this would connect to a secure database or search service.
+        </div>
+
+        <a href="/" class="back-button">🏠 Return to Home Page</a>
+    </div>
+
+    <script>
+        // Get search term from URL parameters and display it safely
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchTerm = urlParams.get('q');
+        
+        if (searchTerm) {
+            // Use textContent to prevent XSS (even though input is already validated)
+            document.getElementById('searchTerm').textContent = searchTerm;
+        } else {
+            // If no search term, redirect to home
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

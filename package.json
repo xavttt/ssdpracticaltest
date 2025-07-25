@@ -1,0 +1,19 @@
+{
+  "name": "secure-web-app",
+  "version": "1.0.0",
+  "description": "A secure web application with XSS and SQL injection protection",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "validator": "^13.11.0",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5"
+  },
+  "keywords": ["security", "web", "xss", "sql-injection", "owasp"],
+  "author": "",
+  "license": "MIT"
+}
