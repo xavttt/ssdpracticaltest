@@ -55,6 +55,41 @@ A secure Node.js web application that implements OWASP Top 10 Proactive Control 
 3. **Access the application:**
    Open your browser and go to `http://localhost:3000`
 
+## SonarQube Code Quality Analysis
+
+This project includes SonarQube integration for continuous code quality and security analysis.
+
+### Local SonarQube Setup:
+
+1. **Start SonarQube with Docker Compose:**
+   ```bash
+   docker-compose up -d sonarqube db
+   ```
+
+2. **Set up SonarQube configuration:**
+   ```bash
+   chmod +x setup-local-sonarqube.sh
+   ./setup-local-sonarqube.sh
+   ```
+
+3. **Access SonarQube Web Interface:**
+   - URL: `http://localhost:9000`
+   - Username: `admin`
+   - Password: `2301801@SIT.singaporetech.edu.sg`
+
+4. **Run code analysis:**
+   ```bash
+   npm install -g sonarqube-scanner
+   sonar-scanner
+   ```
+
+### CI/CD Integration:
+SonarQube analysis runs automatically in GitHub Actions CI/CD pipeline with:
+- Security hotspot detection
+- Code quality metrics
+- Vulnerability scanning
+- Technical debt analysis
+
 ## How to Test Security Features
 
 ### Test XSS Protection:

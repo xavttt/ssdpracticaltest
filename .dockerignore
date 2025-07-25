@@ -85,6 +85,41 @@ temp/
 # Git repositories
 repos/
 
+# Security sensitive files
+.env*
+.npmrc
+.yarnrc
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.ssh/
+.ssh/
+secrets/
+config/secrets.json
+private/
+
+# Testing and CI/CD
+test-results/
+coverage/
+.nyc_output
+*.test.js
+*.spec.js
+tests/
+__tests__/
+.github/
+.gitignore
+.git/
+
+# Documentation and development files
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+LICENSE
+docs/
+*.md
+
 # Logs
 logs
 *.log
