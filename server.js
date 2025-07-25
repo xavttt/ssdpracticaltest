@@ -75,20 +75,22 @@ function validateSearchInput(input) {
         }
     }
 
-    // SQL Injection Prevention - Check for common SQL injection patterns
+    // SQL Injection Prevention - Check for common SQL injection patterns (ReDoS-safe)
     const sqlPatterns = [
         /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|SCRIPT)\b)/gi,
         /(\b(OR|AND)\s+\d+\s*=\s*\d+)/gi,
-        /(\b(OR|AND)\s+'\w*'\s*=\s*'\w*')/gi,
-        /(\b(OR|AND)\s+"\w*"\s*=\s*"\w*")/gi,
-        /(;.*--|\/\*.*\*\/|--\s)/g, // More specific for SQL comments
+        /(\b(OR|AND)\s+'\w{1,20}'\s*=\s*'\w{1,20}')/gi, // Limited repetition to prevent ReDoS
+        /(\b(OR|AND)\s+"\w{1,20}"\s*=\s*"\w{1,20}")/gi, // Limited repetition to prevent ReDoS
+        /(;[^;]{0,50}--|\/\*[^*]{0,100}\*\/|--\s[^\r\n]{0,50})/g, // Specific length limits for SQL comments
         /(\bUNION\b.*\bSELECT\b)/gi,
         /(\b(WAITFOR|DELAY)\b)/gi,
         /(\bCAST\s*\()/gi,
         /(\bCONVERT\s*\()/gi,
         /(\bDECLARE\s+@)/gi,
         /(\\x[0-9a-f]{2}|%[0-9a-f]{2})/gi,
-        /('.*'.*=.*'.*'|".*".*=.*".*")/gi // Specific quote patterns for injection
+        // Safe patterns for quote injection detection
+        /('[^']{0,50}'[^']{0,20}=[^']{0,20}'[^']{0,50}')/gi,
+        /("[^"]{0,50}"[^"]{0,20}=[^"]{0,20}"[^"]{0,50}")/gi
     ];
 
     for (const pattern of sqlPatterns) {
