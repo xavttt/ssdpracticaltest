@@ -5,13 +5,20 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "lint": "eslint .",
+    "lint:security": "eslint . --ext .js --config .eslintrc.security.js"
   },
   "dependencies": {
     "express": "^4.18.2",
     "validator": "^13.11.0",
     "helmet": "^7.1.0",
     "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-plugin-security": "^1.7.1",
+    "eslint-plugin-node": "^11.1.0"
   },
   "keywords": ["security", "web", "xss", "sql-injection", "owasp"],
   "author": "",

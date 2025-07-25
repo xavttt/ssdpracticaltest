@@ -1,0 +1,15 @@
+node_modules/
+*.min.js
+dist/
+build/
+coverage/
+.nyc_output/
+*.log
+.git/
+.github/
+Dockerfile
+docker-compose.yml
+*.md
+*.json
+!package.json
+!package-lock.json

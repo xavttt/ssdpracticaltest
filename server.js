@@ -11,10 +11,10 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            scriptSrc: ["'self'"],
-            imgSrc: ["'self'", "data:", "https:"],
+            defaultSrc: ['\'self\''],
+            styleSrc: ['\'self\'', '\'unsafe-inline\''],
+            scriptSrc: ['\'self\''],
+            imgSrc: ['\'self\'', 'data:', 'https:'],
         },
     },
 }));
@@ -53,20 +53,20 @@ function validateSearchInput(input) {
         return { isValid: false, reason: 'Input too long' };
     }
 
-    // XSS Prevention - Check for common XSS patterns
+    // XSS Prevention - Check for common XSS patterns (ReDoS-safe)
     const xssPatterns = [
-        /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-        /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi,
-        /<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi,
-        /<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi,
-        /<link\b[^<]*(?:(?!<\/link>)<[^<]*)*<\/link>/gi,
-        /<meta\b[^<]*(?:(?!<\/meta>)<[^<]*)*<\/meta>/gi,
-        /javascript:/gi,
-        /vbscript:/gi,
-        /on\w+\s*=/gi,
-        /<.*?>/g,
-        /&lt;.*?&gt;/g,
-        /&#x?\d+;/g
+        /<script[^>]*>/i,
+        /<\/script>/i,
+        /<iframe[^>]*>/i,
+        /<object[^>]*>/i,
+        /<embed[^>]*>/i,
+        /<link[^>]*>/i,
+        /javascript:/i,
+        /vbscript:/i,
+        /on\w+\s*=/i,
+        /<[^>]{1,100}>/,
+        /&lt;[^&]{1,50}&gt;/,
+        /&#x?[0-9a-f]{1,6};/i
     ];
 
     for (const pattern of xssPatterns) {

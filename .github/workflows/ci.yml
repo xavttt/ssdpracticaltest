@@ -23,6 +23,17 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
+    - name: Run ESLint security scan
+      run: |
+        echo "Running ESLint security analysis..."
+        npm run lint:security -- --format json --output-file eslint-security-results.json || true
+        npm run lint:security
+        
+    - name: Run standard ESLint
+      run: |
+        echo "Running standard ESLint checks..."
+        npm run lint
+      
     - name: Run dependency security audit
       run: npm audit --audit-level=moderate
       
@@ -97,12 +108,35 @@ jobs:
         npm install -D @playwright/test
         npx playwright install --with-deps chromium
         
-        # Create a simple UI test
-        cat > ui-test.js << 'EOF'
+        # Create playwright config
+        cat > playwright.config.js << 'EOF'
+        module.exports = {
+          testDir: './tests',
+          timeout: 30000,
+          use: {
+            headless: true,
+            viewport: { width: 1280, height: 720 },
+            actionTimeout: 0,
+            baseURL: 'http://127.0.0.1',
+          },
+          projects: [
+            {
+              name: 'chromium',
+              use: { ...require('@playwright/test').devices['Desktop Chrome'] },
+            },
+          ],
+        };
+        EOF
+        
+        # Create tests directory
+        mkdir -p tests
+        
+        # Create a UI test file
+        cat > tests/security.spec.js << 'EOF'
         const { test, expect } = require('@playwright/test');
         
         test('Home page loads and form is present', async ({ page }) => {
-          await page.goto('http://127.0.0.1:3000');
+          await page.goto('/');
           
           // Check if page title contains expected text
           await expect(page).toHaveTitle(/Secure Search/);
@@ -117,7 +151,7 @@ jobs:
         });
         
         test('XSS protection works', async ({ page }) => {
-          await page.goto('http://127.0.0.1:3000');
+          await page.goto('/');
           
           // Try to submit XSS payload
           await page.fill('input[name="searchTerm"]', '<script>alert("xss")</script>');
@@ -128,7 +162,7 @@ jobs:
         });
         
         test('Valid search works', async ({ page }) => {
-          await page.goto('http://127.0.0.1:3000');
+          await page.goto('/');
           
           // Submit valid search
           await page.fill('input[name="searchTerm"]', 'hello world');
@@ -141,7 +175,7 @@ jobs:
         EOF
         
         # Run the UI tests
-        npx playwright test ui-test.js
+        npx playwright test
         
     - name: Dependency vulnerability scan
       run: |
@@ -179,5 +213,6 @@ jobs:
         name: test-results
         path: |
           audit-results.json
+          eslint-security-results.json
           test-results/
         retention-days: 30
