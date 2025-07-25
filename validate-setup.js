@@ -111,6 +111,23 @@ try {
     console.log(`❌ Error reading server.js: ${error.message}`);
 }
 
+console.log('\n🔑 Checking SonarQube token authentication...');
+
+try {
+    const sonarConfig = fs.readFileSync('sonar-project.properties', 'utf8');
+    
+    if (sonarConfig.includes('sonar.token=squ_')) {
+        console.log('✅ Token authentication configured');
+    } else if (sonarConfig.includes('sonar.login=') && sonarConfig.includes('sonar.password=')) {
+        console.log('⚠️  Using deprecated username/password authentication');
+    } else {
+        console.log('❌ No authentication method found');
+    }
+    
+} catch (error) {
+    console.log(`❌ Error reading sonar-project.properties: ${error.message}`);
+}
+
 console.log('\n🎯 Overall Status:');
 if (allFilesExist) {
     console.log('✅ All required files are present');
@@ -122,7 +139,12 @@ if (allFilesExist) {
 
 console.log('\n📚 Next Steps:');
 console.log('1. Start services: docker-compose up --build');
-console.log('2. Run tests: npm test (requires npm execution policy)');
-console.log('3. Access application: http://localhost:3000');
-console.log('4. Access SonarQube: http://localhost:9000');
-console.log('5. Push to GitHub to trigger CI/CD pipeline');
+console.log('2. Run SonarQube setup: bash setup-sonarqube.sh');
+console.log('3. Run analysis: run-sonar-analysis.bat (Windows) or ./run-sonar-analysis.sh (Linux)');
+console.log('4. Access application: http://localhost:3000');
+console.log('5. Access SonarQube: http://localhost:9000');
+console.log('6. Push to GitHub to trigger CI/CD pipeline');
+console.log('');
+console.log('🔑 Token Authentication:');
+console.log('   SonarQube now uses token-based authentication.');
+console.log('   The generated token is: squ_04a5f73594296b442672e1f92a633494c15fddc3');
